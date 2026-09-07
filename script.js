@@ -349,22 +349,11 @@ function handleDownload(id) {
 }
 
 /* ============================================================
-   9) Hidden Control Panel — secret triggers
-   1) URL:  index.html#panel | #admin | ?panel=1 | ?admin=true
-   2) Type "admin" anywhere on the page (ignored in inputs)
-   3) Triple-click the header logo (within 900ms)
+   9) Hidden Control Panel — opens ONLY by adding #panel to the
+   page URL (e.g. index.html#panel). Nothing else triggers it.
    ============================================================ */
-var PANEL_HASHES = ["#panel", "#admin"];
-var PANEL_QUERIES = ["panel", "admin"];
-
 function isPanelUrl() {
-  var h = window.location.hash.toLowerCase();
-  if (PANEL_HASHES.indexOf(h) !== -1) return true;
-  var params = new URLSearchParams(window.location.search);
-  return PANEL_QUERIES.some(function (q) {
-    var v = params.get(q);
-    return v === "1" || v === "true";
-  });
+  return window.location.hash.toLowerCase() === "#panel";
 }
 
 function checkPanelUrl() {
@@ -374,31 +363,6 @@ function checkPanelUrl() {
 window.addEventListener("hashchange", checkPanelUrl);
 window.addEventListener("popstate", checkPanelUrl);
 
-/* type "admin" */
-document.addEventListener("keydown", function (e) {
-  var t = e.target;
-  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-  if (e.key.length !== 1) return;
-  keyBuffer = (keyBuffer + e.key).toLowerCase().slice(-5);
-  if (keyBuffer === "admin") {
-    keyBuffer = "";
-    showPanel();
-  }
-});
-var keyBuffer = "";
-
-/* triple-click logo (900ms window) */
-var logoClicks = [];
-$("#logo-btn").addEventListener("click", function () {
-  var now = Date.now();
-  logoClicks = logoClicks.filter(function (t) { return now - t < 900; });
-  logoClicks.push(now);
-  if (logoClicks.length >= 3) {
-    logoClicks = [];
-    showPanel();
-  }
-});
-
 function showPanel() {
   if (openOverlays.indexOf("panel") === -1) {
     openOverlay("panel");
@@ -406,6 +370,8 @@ function showPanel() {
     toast("Control Panel unlocked", "Only you can see this — visitors never will.");
   }
 }
+
+/* The header logo is purely decorative — clicking it does nothing. */
 
 /* ============================================================
    10) Control Panel rendering + actions
